@@ -5,8 +5,9 @@
 部署教程：[文档](https://fcircle-doc.yyyzyyyz.cn/) | [备用地址](https://fcircle-doc.is-a.dev/)
 
 ```
-5.0.2 支持：
+5.0.6 支持：
 - 更好的前端样式
+- 极简模式
 - 新增前端管理面板，告别繁琐的配置，管理朋友圈更加方便
 - 支持 gitee 和 github 上的 issues 友链获取
 - 支持butterfly、volantis、matery、sakura、fluid、nexmoe、Yun、stun、stellar、next主题的友链和文章获取
@@ -25,7 +26,6 @@
 - 提供一个简单的快速部署脚本
 
 最近改动：
-- 修复可能出现的安全问题
-- volantis抓取错位修复
+- 增加重置数据库功能
 ```
 

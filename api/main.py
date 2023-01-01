@@ -14,9 +14,9 @@ from hexo_circle_of_friends import scrapy_conf
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from api_dependencies.items import PassWord, GitHubEnv, VercelEnv, ServerEnv, FcSettings as item_fc_settings
-from api_dependencies.utils.github_upload import bulk_create_or_update_secret, create_or_update_file, \
-    get_b64encoded_data, crawl_now
-from api_dependencies.utils.vercel_upload import bulk_create_or_update_env, get_envs
+from api_dependencies.utils.github_interface import bulk_create_or_update_secret, create_or_update_file, \
+    get_b64encoded_data, crawl_now, check_crawler_status
+from api_dependencies.utils.vercel_interface import bulk_create_or_update_env, get_envs
 from api_dependencies import format_response, tools
 
 settings = get_user_settings()
@@ -49,10 +49,10 @@ def all(start: int = 0, end: int = -1, rule: str = "updated"):
     """返回数据库统计信息和文章信息列表
     - start: 文章信息列表从 按rule排序后的顺序 的开始位置
     - end: 文章信息列表从 按rule排序后的顺序 的结束位置
-    - rule: 文章排序规则（创建时间/更新时间）
+    - rule: 文章排序规则（创建时间created/更新时间updated）
     """
-    list = ['title', 'created', 'updated', 'link', 'author', 'avatar']
-    return query_all(list, start, end, rule)
+    list_ = ['title', 'created', 'updated', 'link', 'author', 'avatar']
+    return query_all(list_, start, end, rule)
 
 
 @app.get("/friend", tags=["PUBLIC_API"], summary="返回所有友链")
@@ -313,6 +313,45 @@ async def run_crawl_now(payload: str = Depends(login_with_token_)):
         except:
             resp = {"code": 500, "message": "运行失败"}
     return format_response.standard_response(code=resp["code"], message=resp["message"])
+
+
+@app.get("/crawler_status", tags=["Manage"])
+async def crawler_status(payload: str = Depends(login_with_token_)):
+    """
+    查看crawler运行状态
+    status: 运行中；未运行；未知
+    """
+    if settings["DEPLOY_TYPE"] == "github":
+        # 获取gh_access_token
+        gh_access_token = os.environ.get("GH_TOKEN")
+        gh_name = os.environ.get("GH_NAME")
+        if not gh_access_token or not gh_name:
+            return format_response.standard_response(code=400, message="缺少环境变量GH_TOKEN或GH_NAME")
+        repo_name = "hexo-circle-of-friends"
+        resp = await check_crawler_status(gh_access_token, gh_name, repo_name)
+    else:
+        # docker/server
+        resp = {"code": 200, "message": "检查成功"}
+        # restart_api:两个run；run_crawl_now两个main
+        check_restart_api = int(os.popen(
+            "ps -ef | egrep 'hexo_circle_of_friends/run.py' | grep -v grep | wc -l").read().strip())
+        check_run_crawl_now = int(os.popen("ps -ef | egrep 'api/main.py' | grep -v grep | wc -l").read().strip())
+        if check_restart_api <= 1 and check_run_crawl_now == 1:
+            resp["status"] = "未运行"
+        elif check_restart_api == 2 or check_run_crawl_now == 2:
+            resp["status"] = "运行中"
+        else:
+            resp["code"] = 500
+            resp["message"] = "检查运行状态失败"
+            resp["status"] = "未知"
+    return format_response.standard_response(**resp)
+
+@app.delete("/db_reset", tags=["Manage"])
+async def db_reset(payload: str = Depends(login_with_token_)):
+    """
+    清空数据库中友链、文章表
+    """
+    return await db_reset_()
 
 
 if __name__ == "__main__":
