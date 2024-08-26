@@ -15,7 +15,7 @@
 #   - stellar：stellar主题
 # 支持配置多个友链页面并指定不同主题策略，每个用{}分隔，它们会被同时爬取，数据保存在一起。
 LINK: [
-     { link: "https://blog.bornforthis.cn/link/", theme: "common2" },  # 友链页地址1，修改为你的友链页地址
+    {link: "https://blog.zerolacqua.top/link/", theme: "butterfly"},  # 友链页地址1，修改为你的友链页地址
     #  { link: "https://blog.class1v1.com/link/", theme: "common2" }, # 友链页地址2
 #     { link: "https://immmmm.com/about/", theme: "common1" }, # 友链页地址3
 #     ...
@@ -69,6 +69,7 @@ GITHUB_FRIENDS_LINKS: {
 # block site list
 # 添加屏蔽站点，支持正则表达式
 BLOCK_SITE: [
+   https://www.lyshark.com/, 
 #    https://example.com/, # 屏蔽 https://example.com/
 #    .*\.com,  # 含有.com的全部屏蔽
 #    ^http://,  # http开头的全部屏蔽
@@ -82,7 +83,7 @@ MAX_POSTS_NUM: 25
 HTTP_PROXY: false
 
 # 过期文章清除（天）
-OUTDATE_CLEAN: 10000
+OUTDATE_CLEAN: 60
 
 # 5.x以后默认为sqlite，同时不建议使用leancloud
 # 存储方式，可选项：leancloud，mysql，sqlite，mongodb；默认为sqlite
